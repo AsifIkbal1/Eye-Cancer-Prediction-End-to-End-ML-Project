@@ -1,0 +1,52 @@
+import streamlit as st
+import numpy as np
+import pickle
+
+# Load the trained model
+model = pickle.load(open('eye_cancer_model.pkl', 'rb'))
+
+st.set_page_config(page_title="Eye Cancer Prediction", layout="centered")
+
+st.title("👁️ Eye Cancer Prediction App")
+st.markdown("Enter patient details to predict if they may have eye cancer.")
+
+# Input features
+age = st.number_input("👤 Age", min_value=1, max_value=100, value=30)
+eye_pressure = st.slider("💧 Eye Pressure", min_value=5.0, max_value=35.0, value=15.0, step=0.1)
+redness = st.selectbox("🔴 Redness in Eye", ['Yes', 'No'])
+pain = st.selectbox("😣 Eye Pain", ['Yes', 'No'])
+vision_loss = st.selectbox("👓 Vision Loss", ['Yes', 'No'])
+eye_movement = st.selectbox("👁️‍🗨️ Eye Movement Problem", ['Yes', 'No'])
+family_history = st.selectbox("🧬 Family History of Eye Cancer", ['Yes', 'No'])
+diagnosis_type = st.selectbox("🔬 Type of Diagnosis Method", ['Ultrasound', 'MRI', 'Biopsy'])
+
+# Convert categorical to numeric (manually or via LabelEncoder mapping)
+def binary_encode(val):
+    return 1 if val == 'Yes' else 0
+
+def diagnosis_encode(val):
+    mapping = {'Ultrasound': 0, 'MRI': 1, 'Biopsy': 2}
+    return mapping[val]
+
+# Prepare the input
+features = np.array([[ 
+    age, 
+    eye_pressure, 
+    binary_encode(redness), 
+    binary_encode(pain), 
+    binary_encode(vision_loss), 
+    binary_encode(eye_movement), 
+    binary_encode(family_history), 
+    diagnosis_encode(diagnosis_type)
+]])
+
+# Predict button
+if st.button("🔍 Predict"):
+    prediction = model.predict(features)[0]
+    if prediction == 1:
+        st.error("❌ The patient is likely to have eye cancer.")
+    else:
+        st.success("✅ The patient is unlikely to have eye cancer.")
+
+st.markdown("---")
+st.markdown("👨‍⚕️ **Disclaimer:** This is a machine learning prediction and should not be treated as a medical diagnosis.")
